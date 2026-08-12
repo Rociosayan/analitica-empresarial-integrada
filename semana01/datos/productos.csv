@@ -1,0 +1,21 @@
+sku,producto,cultivo,variedad,calibre,kg_por_caja,factor_precio
+ARA-1P,arandano,Arándano,Ventura,Premium,1.5,1.18
+ARA-1E,arandano,Arándano,Ventura,Estándar,1.5,1.0
+ARA-2P,arandano,Arándano,Biloxi,Premium,1.5,1.18
+ARA-2E,arandano,Arándano,Biloxi,Estándar,1.5,1.0
+ARA-3P,arandano,Arándano,Sekoya,Premium,1.5,1.18
+ARA-3E,arandano,Arándano,Sekoya,Estándar,1.5,1.0
+UVA-1P,uva,Uva de mesa,Red Globe,Premium,8.2,1.18
+UVA-1E,uva,Uva de mesa,Red Globe,Estándar,8.2,1.0
+UVA-2P,uva,Uva de mesa,Sweet Globe,Premium,8.2,1.18
+UVA-2E,uva,Uva de mesa,Sweet Globe,Estándar,8.2,1.0
+PAL-1P,palta,Palta Hass,Hass,Premium,4.0,1.18
+PAL-1E,palta,Palta Hass,Hass,Estándar,4.0,1.0
+ESP-1P,esparrago,Espárrago verde,UC-157,Premium,5.0,1.18
+ESP-1E,esparrago,Espárrago verde,UC-157,Estándar,5.0,1.0
+MAN-1P,mango,Mango Kent,Kent,Premium,4.0,1.18
+MAN-1E,mango,Mango Kent,Kent,Estándar,4.0,1.0
+MAN-2P,mango,Mango Kent,Edward,Premium,4.0,1.18
+MAN-2E,mango,Mango Kent,Edward,Estándar,4.0,1.0
+GRA-1P,granada,Granada,Wonderful,Premium,4.0,1.18
+GRA-1E,granada,Granada,Wonderful,Estándar,4.0,1.0

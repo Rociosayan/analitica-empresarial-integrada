@@ -1,0 +1,73 @@
+cliente_id,cliente,pais,canal,fecha_alta,contacto_email
+CL001,Delta Imports,China,Retail,2021-05-03,compras@deltaimports.com
+CL002,Pacific Partners,Estados Unidos,Mayorista,2023-12-31,compras@pacificpartners.com
+CL003,Atlas Markets,China,Mayorista,2022-07-07,compras@atlasmarkets.com
+CL004,Atlas Fruits,Estados Unidos,Retail,2021-03-16,compras@atlasfruits.com
+CL005,Premium Group,Estados Unidos,Retail,2021-10-31,compras@premiumgroup.com
+CL006,Pacific Foods,Estados Unidos,Retail,2021-09-06,compras@pacificfoods.com
+CL007,Pacific Markets,China,Industrial,2022-06-21,compras@pacificmarkets.com
+CL008,Pacific Fruits,Estados Unidos,Mayorista,2021-01-30,compras@pacificfruits.com
+CL009,Pacific Distribution,Estados Unidos,Mayorista,2020-04-20,compras@pacificdistribution.com
+CL010,Atlas Foods,Países Bajos,Mayorista,2021-08-10,compras@atlasfoods.com
+CL011,Vertex Fruits,Estados Unidos,Mayorista,2019-09-24,compras@vertexfruits.com
+CL012,Delta Foods,Hong Kong,Industrial,2019-12-31,compras@deltafoods.com
+CL013,Green Partners,Estados Unidos,Retail,2021-05-30,compras@greenpartners.com
+CL014,Nova Markets,China,Retail,2023-12-01,compras@novamarkets.com
+CL015,Fresh Trading,Estados Unidos,Mayorista,2020-01-15,compras@freshtrading.com
+CL016,Green Sourcing,Países Bajos,Mayorista,2022-07-07,compras@greensourcing.com
+CL017,Blue Markets,Estados Unidos,Mayorista,2020-10-17,compras@bluemarkets.com
+CL018,Vertex Produce,Hong Kong,Retail,2022-03-24,compras@vertexproduce.com
+CL019,Pacific Imports,China,Mayorista,2020-03-12,compras@pacificimports.com
+CL020,Golden Distribution,China,Retail,2023-10-05,compras@goldendistribution.com
+CL021,Nova Group,Estados Unidos,Retail,2021-11-10,compras@novagroup.com
+CL022,Premium Fruits,Países Bajos,Mayorista,2020-09-05,compras@premiumfruits.com
+CL023,Orion Foods,Estados Unidos,Mayorista,2021-10-10,compras@orionfoods.com
+CL024,Green Imports,Reino Unido,Mayorista,2024-04-05,compras@greenimports.com
+CL025,Pacific Group,Reino Unido,Retail,2024-03-03,compras@pacificgroup.com
+CL026,Delta Distribution,Estados Unidos,Retail,2021-07-21,compras@deltadistribution.com
+CL027,Fresh Imports,Países Bajos,Retail,2022-08-03,compras@freshimports.com
+CL028,Global Produce,Estados Unidos,Mayorista,2022-06-04,compras@globalproduce.com
+CL029,Global Imports,España,Retail,2023-10-21,compras@globalimports.com
+CL030,Nova Trading,Estados Unidos,Industrial,2021-05-03,compras@novatrading.com
+CL031,Green Fruits,Estados Unidos,Mayorista,2020-05-27,compras@greenfruits.com
+CL032,Blue Distribution,Canadá,Retail,2019-11-26,compras@bluedistribution.com
+CL033,Andean Partners,Canadá,Retail,2020-03-12,compras@andeanpartners.com
+CL034,Vertex Group,Reino Unido,Retail,2019-12-06,compras@vertexgroup.com
+CL035,Fresh Fruits,China,Mayorista,2022-01-18,compras@freshfruits.com
+CL036,Sun Sourcing,Países Bajos,Mayorista,2020-12-16,compras@sunsourcing.com
+CL037,Orion Partners,España,Retail,2022-10-10,compras@orionpartners.com
+CL038,Atlas Trading,Estados Unidos,Mayorista,2023-11-14,compras@atlastrading.com
+CL039,Green Produce,Estados Unidos,Industrial,2021-04-27,compras@greenproduce.com
+CL040,Premium Imports,Países Bajos,Mayorista,2021-08-23,compras@premiumimports.com
+CL041,Golden Foods,China,Mayorista,2020-01-22,compras@goldenfoods.com
+CL042,Andean Sourcing,China,Mayorista,2023-10-19,compras@andeansourcing.com
+CL043,Atlas Group,Países Bajos,Mayorista,2021-06-26,compras@atlasgroup.com
+CL044,Pacific Trading,Estados Unidos,Retail,2021-12-04,compras@pacifictrading.com
+CL045,Premium Trading,Alemania,Retail,2019-09-04,compras@premiumtrading.com
+CL046,Atlas Produce,Hong Kong,Industrial,2021-04-14,compras@atlasproduce.com
+CL047,Orion Distribution,Países Bajos,Mayorista,2021-09-09,compras@oriondistribution.com
+CL048,Fresh Sourcing,China,Retail,2023-11-08,compras@freshsourcing.com
+CL049,Nova Distribution,Estados Unidos,Retail,2022-07-23,compras@novadistribution.com
+CL050,Global Sourcing,Estados Unidos,Mayorista,2020-05-18,compras@globalsourcing.com
+CL051,Delta Partners,Alemania,Mayorista,2021-01-18,compras@deltapartners.com
+CL052,Nova Foods,Países Bajos,Mayorista,2024-01-10,compras@novafoods.com
+CL053,Premium Distribution,Reino Unido,Retail,2024-02-19,compras@premiumdistribution.com
+CL054,Andean Trading,China,Retail,2021-02-11,compras@andeantrading.com
+CL055,Golden Imports,Canadá,Industrial,2024-04-14,compras@goldenimports.com
+CL056,Nova Produce,Países Bajos,Retail,2021-07-04,compras@novaproduce.com
+CL057,Atlas Sourcing,Países Bajos,Mayorista,2024-04-05,compras@atlassourcing.com
+CL058,Delta Fruits,Canadá,Retail,2021-01-23,compras@deltafruits.com
+CL059,Delta Sourcing,Países Bajos,Industrial,2023-09-15,compras@deltasourcing.com
+CL060,Vertex Sourcing,China,Mayorista,2020-04-05,compras@vertexsourcing.com
+CL061,Sun Imports,España,Mayorista,2023-04-27,compras@sunimports.com
+CL062,Andean Fruits,Reino Unido,Retail,2019-08-28,compras@andeanfruits.com
+CL063,Blue Partners,España,Retail,2021-06-20,compras@bluepartners.com
+CL064,Vertex Foods,Estados Unidos,Retail,2024-06-08,compras@vertexfoods.com
+CL065,Golden Fruits,Alemania,Industrial,2024-01-25,compras@goldenfruits.com
+CL066,Blue Group,Hong Kong,Mayorista,2020-10-05,compras@bluegroup.com
+CL067,Fresh Foods,China,Mayorista,2024-01-01,compras@freshfoods.com
+CL068,Sun Partners,Estados Unidos,Retail,2022-07-09,compras@sunpartners.com
+CL069,Golden Group,Estados Unidos,Retail,2022-11-13,compras@goldengroup.com
+CL070,Orion Imports,Reino Unido,Retail,2024-01-02,compras@orionimports.com
+CL071,Pacific Produce,Países Bajos,Mayorista,2023-08-12,compras@pacificproduce.com
+CL072,Sun Distribution,Estados Unidos,Industrial,2021-03-02,compras@sundistribution.com
