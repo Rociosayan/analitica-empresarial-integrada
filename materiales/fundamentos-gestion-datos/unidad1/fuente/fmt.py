@@ -18,12 +18,31 @@ BODY = 10
 TEXT_W = 17.0  # ancho útil en cm (A4 21 cm - 2 x 2 cm)
 
 
+TCPR_ORDER = ['cnfStyle', 'tcW', 'gridSpan', 'hMerge', 'vMerge', 'tcBorders', 'shd', 'noWrap', 'tcMar',
+              'textDirection', 'tcFitText', 'vAlign', 'hideMark']
+TBLPR_ORDER = ['tblStyle', 'tblpPr', 'tblOverlap', 'bidiVisual', 'tblStyleRowBandSize', 'tblStyleColBandSize', 'tblW', 'jc',
+               'tblCellSpacing', 'tblInd', 'tblBorders', 'shd', 'tblLayout', 'tblCellMar', 'tblLook', 'tblCaption', 'tblDescription']
+
+
+def _reorder(el, order):
+    """Ordena los hijos según el esquema OOXML (Word rechaza un orden distinto)."""
+    kids = list(el)
+    key = lambda c: order.index(c.tag.split('}')[1]) if c.tag.split('}')[1] in order else len(order)
+    for c in kids:
+        el.remove(c)
+    for c in sorted(kids, key=key):
+        el.append(c)
+
+
 def _shade(el_pr, fill):
     shd = OxmlElement('w:shd')
     shd.set(qn('w:val'), 'clear')
     shd.set(qn('w:color'), 'auto')
     shd.set(qn('w:fill'), fill)
+    for old in el_pr.findall(qn('w:shd')):
+        el_pr.remove(old)
     el_pr.append(shd)
+    _reorder(el_pr, TCPR_ORDER if el_pr.tag == qn('w:tcPr') else TBLPR_ORDER)
 
 
 def _borders(tc_pr, spec):
@@ -37,7 +56,10 @@ def _borders(tc_pr, spec):
         else:
             e.set(qn('w:val'), 'nil')
         b.append(e)
+    for old in tc_pr.findall(qn('w:tcBorders')):
+        tc_pr.remove(old)
     tc_pr.append(b)
+    _reorder(tc_pr, TCPR_ORDER)
 
 
 def _cell_margins(tbl, top=60, bottom=60, left=100, right=100):
@@ -46,6 +68,7 @@ def _cell_margins(tbl, top=60, bottom=60, left=100, right=100):
     for side, v in (('top', top), ('left', left), ('bottom', bottom), ('right', right)):
         e = OxmlElement(f'w:{side}'); e.set(qn('w:w'), str(v)); e.set(qn('w:type'), 'dxa'); m.append(e)
     tbl_pr.append(m)
+    _reorder(tbl_pr, TBLPR_ORDER)
 
 
 def _no_split(row):
@@ -352,6 +375,15 @@ class Doc:
         bdr = OxmlElement('w:pBdr'); top = OxmlElement('w:top')
         top.set(qn('w:val'), 'single'); top.set(qn('w:sz'), '4'); top.set(qn('w:space'), '4'); top.set(qn('w:color'), 'BFBFBF')
         bdr.append(top); ppr.append(bdr)
+        _reorder(ppr, ['pStyle', 'keepNext', 'keepLines', 'pageBreakBefore', 'framePr', 'widowControl', 'numPr',
+                       'suppressLineNumbers', 'pBdr', 'shd', 'tabs', 'suppressAutoHyphens', 'kinsoku', 'wordWrap',
+                       'overflowPunct', 'topLinePunct', 'autoSpaceDE', 'autoSpaceDN', 'bidi', 'adjustRightInd',
+                       'snapToGrid', 'spacing', 'ind', 'contextualSpacing', 'mirrorIndents', 'suppressOverlap', 'jc',
+                       'textDirection', 'textAlignment', 'textboxTightWrap', 'outlineLvl', 'divId', 'cnfStyle', 'rPr',
+                       'sectPr', 'pPrChange'])
 
     def save(self, path):
+        z = self.d.settings.element.find(qn('w:zoom'))
+        if z is not None and z.get(qn('w:percent')) is None:
+            z.set(qn('w:percent'), '100')
         self.d.save(path)
