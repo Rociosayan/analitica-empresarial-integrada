@@ -1,0 +1,21 @@
+id_producto,nombre_producto,id_categoria,precio_unitario
+1,Audífonos inalámbricos,1,120.0
+2,Mouse inalámbrico,1,45.0
+3,Teclado mecánico,1,210.0
+4,"Monitor 24""",1,650.0
+5,Parlante Bluetooth,1,99.0
+6,Licuadora 600 W,2,189.9
+7,Juego de sábanas,2,95.0
+8,Freidora de aire,2,329.0
+9,Set de ollas,2,259.0
+10,Lámpara LED,2,39.9
+11,Mancuernas 5 kg,3,80.0
+12,Mat de yoga,3,55.0
+13,Bicicleta estática,3,899.0
+14,Zapatillas running,3,279.0
+15,Tomatodo térmico,3,49.9
+16,Libro Introducción a SQL,4,65.0
+17,Novela contemporánea,4,59.0
+18,Libro de cocina,4,79.0
+19,Agenda 2026,4,35.0
+20,Atlas del Perú,4,89.0
