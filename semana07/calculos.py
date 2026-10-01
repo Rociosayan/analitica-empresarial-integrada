@@ -28,6 +28,20 @@ C1 = dict(
 )
 
 
+def var_pct(base, nuevo):
+    """Variación porcentual = (nuevo − base) ÷ base × 100  (la base es el valor de referencia)."""
+    return (nuevo - base) / base * 100
+
+
+def pct_ok(base_mostrada, nueva_mostrada, base_exacta, nueva_exacta, dec):
+    """Variación % calculada con los valores MOSTRADOS en el cuadro (lo que puede repetir
+    el estudiante) y con los valores SIN redondear: deben coincidir al decimal publicado."""
+    a = round(var_pct(base_mostrada, nueva_mostrada), dec)
+    b = round(var_pct(base_exacta, nueva_exacta), dec)
+    assert a == b, (base_mostrada, nueva_mostrada, a, b)
+    return a
+
+
 def erlang_c(lam, mu, s):
     """Medidas de rendimiento del M/M/s con la fórmula de Erlang C."""
     a = lam / mu
@@ -85,10 +99,31 @@ def caso1():
     out["caida_espera"] = round(a["espera"]) - round(b["espera"])
     out["alza_fijo"] = round(b["fijo"]) - round(a["fijo"])
     assert out["ahorro"] == out["caida_espera"] - out["alza_fijo"]
-    out["pct_total"] = out["ahorro"] / round(a["total"]) * 100
-    out["pct_wq"] = (1 - b["wq_min"] / a["wq_min"]) * 100
-    out["pct_fijo"] = out["alza_fijo"] / round(a["fijo"]) * 100
-    out["pct_espera"] = out["caida_espera"] / round(a["espera"]) * 100
+    # variaciones % con los valores que muestra el cuadro (2 decimales en Wq, 4 en Lq,
+    # soles enteros) y comprobación contra los valores sin redondear
+    out["pct_wq"] = pct_ok(round(a["wq_min"], 2), round(b["wq_min"], 2),
+                           a["wq_min"], b["wq_min"], 1)
+    out["pct_lq"] = pct_ok(round(a["lq"], 4), round(b["lq"], 4), a["lq"], b["lq"], 1)
+    out["pct_fijo"] = pct_ok(round(a["fijo"]), round(b["fijo"]), a["fijo"], b["fijo"], 1)
+    out["pct_espera"] = pct_ok(round(a["espera"]), round(b["espera"]),
+                               a["espera"], b["espera"], 1)
+    out["pct_total"] = pct_ok(round(a["total"]), round(b["total"]),
+                              a["total"], b["total"], 1)
+    # cuánto se pasa / sobra respecto de la meta de espera (base = la meta)
+    meta = c["wq_max_min"]
+    out["pct_exceso_actual"] = pct_ok(meta, round(a["wq_min"], 2), meta, a["wq_min"], 0)
+    out["pct_holgura_prop"] = pct_ok(meta, round(b["wq_min"], 2), meta, b["wq_min"], 0)
+    # utilización y probabilidad de espera expresadas en %
+    for k, x in ((c["s_actual"], a), (c["s_propuesta"], b)):
+        x["rho_pct"] = round(x["rho"] * 100, 1)
+        x["pw_pct"] = round(x["p_espera"] * 100, 1)
+    # peso de cada componente en el costo total (base = costo total de cada propuesta)
+    for x in (a, b):
+        x["peso_fijo"] = round(round(x["fijo"]) / round(x["total"]) * 100, 1)
+        x["peso_espera"] = round(round(x["espera"]) / round(x["total"]) * 100, 1)
+        assert round(x["peso_fijo"] + x["peso_espera"], 1) == 100.0
+        assert round(round(x["fijo"]) / round(x["total"]) * 100, 1) == \
+            round(x["fijo"] / x["total"] * 100, 1)
     # ¿tiene sentido parar en 5? el sexto operador ya no compensa
     c6 = out[c["s_propuesta"] + 1]
     assert c6["total"] > b["total"]
@@ -127,8 +162,18 @@ def caso2():
         (pay["veg_alta"] - pay["veg_est"]) - (pay["trad_alta"] - pay["trad_est"]))
     assert isclose(p_eq * pay["trad_alta"] + (1 - p_eq) * pay["trad_est"],
                    p_eq * pay["veg_alta"] + (1 - p_eq) * pay["veg_est"])
+    dif = ve_t - ve_v
+    pc = dict(
+        dif_sobre_veg=pct_ok(ve_v, ve_t, ve_v, ve_t, 1),       # base: la alternativa descartada
+        dif_sobre_trad=round(dif / ve_t * 100, 1),              # base: la alternativa elegida
+        fav=pct_ok(pay["trad_alta"], pay["veg_alta"], pay["trad_alta"], pay["veg_alta"], 1),
+        des=pct_ok(pay["trad_est"], pay["veg_est"], pay["trad_est"], pay["veg_est"], 1),
+        caida_monto=v["ing_alta"] * v["caida"],
+        p_eq=round(p_eq * 100, 1),
+    )
+    assert isclose(ing_est_veg, v["ing_alta"] - pc["caida_monto"])
     return dict(p=p, q=q, ing_est_veg=ing_est_veg, pay=pay, ve_trad=ve_t,
-                ve_veg=ve_v, dif=ve_t - ve_v, p_eq=p_eq)
+                ve_veg=ve_v, dif=dif, p_eq=p_eq, pct=pc)
 
 
 # --------------------------------------------------------------------------
@@ -164,10 +209,18 @@ def caso3():
     assert isclose(sum(w for w, _ in hojas_camp), 1)
     assert isclose(e2, ve_neto)
     prob_menor = sum(w for w, x in hojas_camp if x < c["seguro"])
+    pc = dict(
+        e2_vs_e1=pct_ok(c["seguro"], ve_neto, c["seguro"], ve_neto, 1),
+        e3_vs_e1=pct_ok(c["seguro"], e3, c["seguro"], e3, 1),
+        aporte_recurso=ve_neto - e3,
+        aporte_rel=pct_ok(e3, ve_neto, e3, ve_neto, 1),
+        p_hojas=[round(w * 100) for w, _ in hojas_camp],
+    )
+    assert sum(pc["p_hojas"]) == 100
     return dict(ve_camp=ve_camp, nodo3=nodo3, ve_bruto=ve_bruto,
                 ve_neto=ve_neto, mejor=mejor, e1=c["seguro"], e2=e2, e3=e3,
                 dif=ve_neto - c["seguro"], hojas_camp=hojas_camp,
-                prob_menor=prob_menor)
+                prob_menor=prob_menor, pct=pc)
 
 
 if __name__ == "__main__":

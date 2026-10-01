@@ -30,8 +30,19 @@ def s(x, dec=0):                       # S/ 13,200
     return f"S/ {x:,.{dec}f}"
 
 
-def pct(x):
-    return f"{x:.1f}%".replace("-", "−")
+def pct(x, dec=1, signo=False):
+    t = f"{abs(x):.{dec}f}%"
+    if x < 0:
+        return "−" + t
+    return ("+" + t) if signo else t
+
+
+def num(x, dec=0, signo=False):
+    """Número con coma de miles y signo menos tipográfico."""
+    t = f"{abs(x):,.{dec}f}"
+    if x < 0:
+        return "−" + t
+    return ("+" + t) if signo else t
 
 
 def _fuente(run, b=False, i=False, color=None):
@@ -135,6 +146,19 @@ class Modelo:
     def __init__(self, docente, plantilla):
         self.doc = Doc(plantilla)
         self.docente = docente
+        self._espacio = None          # espacio de respuesta pendiente (solo estudiante)
+
+    def _cerrar_pregunta(self):
+        """Hoja del estudiante: deja el espacio en blanco para responder."""
+        if self._espacio is None:
+            return
+        self.doc.p([("Respuesta:", dict(b=True, color=DRED))], before=40, after=40, jc=None)
+        for _ in range(self._espacio):
+            self.doc.vacio()
+        self._espacio = None
+
+    def fin(self):
+        self._cerrar_pregunta()
 
     # encabezados
     def titulo(self):
@@ -144,10 +168,13 @@ class Modelo:
                        after=40, jc="center")
         else:
             self.doc.p([("Sustentación", dict(b=True, color=DRED))], after=40, jc="center")
+            self.doc.p([("Nombre: ______________________________   Fecha: ____________",
+                         dict(color=GREY))], after=80, jc="center")
         self.doc.p([("Semana 7 · Teoría de colas y Teoría de decisión",
                      dict(i=True, color=GREY))], jc="center")
 
     def caso(self, n, titulo, subtitulo):
+        self._cerrar_pregunta()
         self.doc.p([(f"Caso {n}: ", dict(b=True, color=DRED)), (titulo, dict(b=True))],
                    before=280, after=80, jc=None, keep_next=True)
         self.doc.p([(subtitulo, dict(i=True, color=GREY))], jc=None, keep_next=True)
@@ -158,13 +185,18 @@ class Modelo:
     def vineta(self, texto):
         self.doc.p([texto], after=80, jc=None, style="List Bullet")
 
-    def pregunta(self, texto, criterio):
+    def pregunta(self, texto, criterio, espacio=5):
+        self._cerrar_pregunta()
+        if not self.docente:
+            self._espacio = espacio
         runs = [(texto, dict(b=not self.docente))]
         if self.docente:
             runs.append((f"   [Criterio de la rúbrica: {criterio}]", dict(b=True, color=DRED)))
         self.doc.p(runs, before=120, after=80, keep_next=True)
 
     def respuesta(self, texto):
+        if not self.docente:
+            return
         runs = []
         if self.docente:
             runs.append(("Respuesta: ", dict(b=True, color=DRED)))
@@ -172,13 +204,29 @@ class Modelo:
         self.doc.p(runs, before=40, after=40)
 
     def linea(self, texto, color=GREEN, b=True):
+        if not self.docente:
+            return
         self.doc.p([(texto, dict(b=b, color=color))], after=40, jc=None)
 
     def texto(self, texto, italica=False):
+        if not self.docente:
+            return
         self.doc.p([(texto, dict(i=italica))], after=120)
 
     def nota(self, texto):
+        if not self.docente:
+            return
         self.doc.p([(texto, dict(i=True, color=GREY))], after=120)
+
+    def imagen(self, nombre, ancho, alto):
+        if self.docente:
+            self.doc.imagen(FIG / nombre, ancho, alto)
+
+    def tabla(self, filas, anchos):
+        """Docente: cuadro resuelto. Estudiante: mismo cuadro con las celdas de resultado vacías."""
+        self.doc.vacio()
+        self.doc.tabla(filas, anchos)
+        self.doc.vacio()
 
     def por_que(self, texto):
         if not self.docente:
@@ -259,7 +307,7 @@ def escribir_caso1(m):
     # -- cálculo
     m.pregunta("¿Qué cálculos debe obtener para evaluar las metas? (Debe ser presentado en un "
                "cuadro y presentar un gráfico que explique el comportamiento de los costos)",
-               "CÁLCULO")
+               "CÁLCULO", espacio=8)
     m.respuesta("Se calcula el sistema M/M/s con la fórmula de Erlang C para s = "
                 f"{c['s_actual']} y s = {c['s_propuesta']}, y se convierte cada resultado a un "
                 "costo mensual:")
@@ -294,9 +342,9 @@ def escribir_caso1(m):
              f"{s(b['espera'])}"],
             ["Costo total mensual", f"{s(a['fijo'])} + {s(a['espera'])} = {s(a['total'])}",
              f"{s(b['fijo'])} + {s(b['espera'])} = {s(b['total'])}"]]
-    m.doc.vacio()
-    m.doc.tabla(filas, [3489, 3489, 3489])
-    m.doc.vacio()
+    if not m.docente:
+        filas = [filas[0]] + [[f[0], "", ""] for f in filas[1:]]
+    m.tabla(filas, [3489, 3489, 3489])
     m.texto(f"El costo fijo mensual por operador es {c['sueldo_dia']}×{c['dias_sem']*c['sem_mes']} "
             f"(planilla: {c['dias_sem']} días × {c['sem_mes']} semanas) + {c['plataforma_sem']}×"
             f"{c['sem_mes']} (plataforma) = {s(r['fijo_unit'])}; se multiplica por s. El costo de "
@@ -305,11 +353,62 @@ def escribir_caso1(m):
             f"extiende a las {hm} horas de operación del mes ({c['horas_dia']} h × "
             f"{c['dias_sem']} d × {c['sem_mes']} sem). Los montos se calculan con Lq sin "
             "redondear y se muestran redondeados al sol.")
-    m.texto("Valores relativos al pasar de s = "
-            f"{c['s_actual']} a s = {c['s_propuesta']}: Wq {pct(-r['pct_wq'])}; costo de espera "
-            f"{pct(-r['pct_espera'])}; costo fijo +{pct(r['pct_fijo'])}; costo total "
-            f"{pct(-r['pct_total'])}.")
-    m.doc.imagen(FIG / "caso1_costos.png", 5219700, 3103245)
+    # ---- detalle del cálculo de porcentajes (solo docente)
+    ma, mb = round(a["wq_min"], 2), round(b["wq_min"], 2)
+    la, lb = round(a["lq"], 4), round(b["lq"], 4)
+    fa, fb = round(a["fijo"]), round(b["fijo"])
+    ea, eb = round(a["espera"]), round(b["espera"])
+    ta, tb = round(a["total"]), round(b["total"])
+    meta = c["wq_max_min"]
+    m.texto("Cómo se calcula el porcentaje (variación relativa). Paso 1: se toma como base el "
+            f"valor actual (s = {c['s_actual']}), porque es la situación con la que se compara. "
+            "Paso 2: se resta valor propuesta − valor actual (si da negativo la medida baja; si "
+            "da positivo, sube). Paso 3: esa diferencia se divide entre la base y se multiplica "
+            "por 100:")
+    m.linea("Variación % = (valor propuesta − valor actual) ÷ valor actual × 100")
+    var = lambda a_, b_, d: (f"({num(b_, d)} − {num(a_, d)}) ÷ {num(a_, d)} × 100 = "
+                             f"{num(b_ - a_, d)} ÷ {num(a_, d)} × 100")
+    filas_p = [["Medida", "Cálculo con los valores del cuadro", "Resultado"],
+               ["Wq (min)", var(ma, mb, 2), pct(r["pct_wq"], signo=True)],
+               ["Lq (pacientes)", var(la, lb, 4), pct(r["pct_lq"], signo=True)],
+               ["Costo fijo mensual", var(fa, fb, 0), pct(r["pct_fijo"], signo=True)],
+               ["Costo de espera mensual", var(ea, eb, 0), pct(r["pct_espera"], signo=True)],
+               ["Costo total mensual", var(ta, tb, 0), pct(r["pct_total"], signo=True)]]
+    if m.docente:
+        m.tabla(filas_p, [2400, 5800, 2267])
+    m.texto("Porcentajes respecto de la meta de espera (aquí la base es la meta de "
+            f"{meta} minutos, no el valor actual): con s = {c['s_actual']}, "
+            f"({num(ma, 2)} − {meta}) ÷ {meta} × 100 = {num(ma - meta, 2)} ÷ {meta} × 100 ≈ "
+            f"{pct(r['pct_exceso_actual'], 0, True)}, es decir, se pasa de la meta en "
+            f"{num(ma - meta, 2)} minutos; con s = {c['s_propuesta']}, "
+            f"({num(mb, 2)} − {meta}) ÷ {meta} × 100 = {num(mb - meta, 2)} ÷ {meta} × 100 ≈ "
+            f"{pct(r['pct_holgura_prop'], 0)}, es decir, queda {pct(-r['pct_holgura_prop'], 0)} "
+            "por debajo del máximo permitido.")
+    m.texto("Magnitudes que ya son porcentajes: utilización de los operadores = ρ × 100 → "
+            f"s = {c['s_actual']}: {a['rho']:.3f} × 100 = {a['rho_pct']:.1f}%; "
+            f"s = {c['s_propuesta']}: {b['rho']:.3f} × 100 = {b['rho_pct']:.1f}%. Probabilidad de "
+            f"tener que esperar = P(espera) × 100 → s = {c['s_actual']}: {a['p_espera']:.3f} × 100 "
+            f"= {a['pw_pct']:.1f}%; s = {c['s_propuesta']}: {b['p_espera']:.3f} × 100 = "
+            f"{b['pw_pct']:.1f}%.")
+    m.texto("Peso de cada componente en el costo total = componente ÷ costo total × 100 "
+            f"(la base es el costo total de cada propuesta): s = {c['s_actual']}: costo fijo "
+            f"{num(fa)} ÷ {num(ta)} × 100 = {a['peso_fijo']:.1f}% y costo de espera "
+            f"{num(ea)} ÷ {num(ta)} × 100 = {a['peso_espera']:.1f}%; s = {c['s_propuesta']}: "
+            f"costo fijo {num(fb)} ÷ {num(tb)} × 100 = {b['peso_fijo']:.1f}% y costo de espera "
+            f"{num(eb)} ÷ {num(tb)} × 100 = {b['peso_espera']:.1f}%. Al contratar al quinto "
+            "operador el costo deja de estar dominado por la espera y pasa a ser sobre todo costo "
+            "fijo.")
+    m.nota("Observaciones: (1) los porcentajes se calcularon con los valores que muestra el "
+           "cuadro; con los valores sin redondear se obtiene el mismo resultado al decimal "
+           "indicado. (2) El porcentaje depende de la base: el costo fijo sube "
+           f"{pct(r['pct_fijo'])} respecto de s = {c['s_actual']}, pero volver de "
+           f"s = {c['s_propuesta']} a s = {c['s_actual']} lo bajaría solo "
+           f"{pct(-C.var_pct(fb, fa), 1)}. (3) No confundir porcentaje con puntos porcentuales: "
+           f"ρ pasa de {a['rho_pct']:.1f}% a {b['rho_pct']:.1f}%, es decir, "
+           f"{num(b['rho_pct'] - a['rho_pct'], 1)} puntos porcentuales, que equivalen a una "
+           f"variación relativa de ({b['rho_pct']:.1f} − {a['rho_pct']:.1f}) ÷ "
+           f"{a['rho_pct']:.1f} × 100 = {pct((b['rho_pct'] - a['rho_pct']) / a['rho_pct'] * 100)}.")
+    m.imagen("caso1_costos.png", 5219700, 3103245)
     m.por_que("Wq y Lq se calculan con Erlang C —y no con fórmulas de M/M/1— porque hay varios "
               "servidores atendiendo en paralelo la misma cola única; usar M/M/1 aquí subestimaría "
               "la espera real. El costo se separa en “fijo” y “de espera” porque son las dos "
@@ -325,14 +424,14 @@ def escribir_caso1(m):
     m.respuesta(f"La mejor propuesta es contratar al quinto operador (s = {c['s_propuesta']}). "
                 "Cumple las dos condiciones planteadas: el tiempo de espera baja de "
                 f"{a['wq_min']:.2f} a {b['wq_min']:.2f} minutos (con s = {c['s_actual']} se excede "
-                f"la meta en {exceso:.2f} minutos, {exceso/c['wq_max_min']*100:.0f}% por encima de "
+                f"la meta en {exceso:.2f} minutos, ≈{r['pct_exceso_actual']:.0f}% por encima de "
                 f"los {c['wq_max_min']} minutos exigidos; con s = {c['s_propuesta']} se cumple con "
                 f"holgura), y el costo total mensual baja de {s(a['total'])} a {s(b['total'])}, es "
-                f"decir, un ahorro de {s(r['ahorro'])} al mes ({pct(r['pct_total'])}). El ahorro "
+                f"decir, un ahorro de {s(r['ahorro'])} al mes ({pct(-r['pct_total'])}). El ahorro "
                 f"ocurre porque, aunque el costo fijo sube en {s(r['alza_fijo'])} "
                 f"({pct(r['pct_fijo'])}) al pasar de 4 a 5 operadores, el costo de oportunidad por "
                 f"las horas de espera de los pacientes cae en {s(r['caida_espera'])} "
-                f"({pct(r['pct_espera'])}), una reducción más de dos veces mayor que el aumento del "
+                f"({pct(-r['pct_espera'])}), una reducción más de dos veces mayor que el aumento del "
                 f"costo fijo. Además, no conviene ir más allá: con un sexto operador el costo total "
                 f"({s(s6['total'])}) volvería a superar al de s = {c['s_propuesta']} "
                 f"({s(b['total'])}).")
@@ -380,7 +479,7 @@ def escribir_caso2(m):
 
     m.pregunta("¿Qué herramienta se utilizaría para resolver el problema? Presente los elementos, "
                "muestre el desarrollo de los cálculos necesarios para hallar los pagos y aplicar "
-               "el criterio del valor esperado.", "REPRESENTACIÓN y CÁLCULO")
+               "el criterio del valor esperado.", "REPRESENTACIÓN y CÁLCULO", espacio=12)
     m.respuesta("Se utiliza un árbol de decisión de un nivel: un nodo de decisión del que salen "
                 "las dos alternativas, cada una con un nodo de azar con dos estados de la "
                 "naturaleza. Primero se hallan los pagos (utilidad = ingreso − costo) de cada "
@@ -393,15 +492,15 @@ def escribir_caso2(m):
               s(t["ing_est"]), s(t["costo"]), s(p["trad_est"])],
              ["Línea vegetariana", f"Alta demanda saludable (P = {r['p']:.2f})",
               s(v["ing_alta"]), s(v["costo"]), s(p["veg_alta"])],
-             ["Línea vegetariana", f"Demanda estable (P = {q:.2f}) *",
+             ["Línea vegetariana", f"Demanda estable (P = {q:.2f})" + (" *" if m.docente else ""),
               s(r["ing_est_veg"]), s(v["costo"]), s(p["veg_est"])]]
-    m.doc.vacio()
-    m.doc.tabla(filas, [2013, 1988, 1955, 1916, 1983])
-    m.doc.vacio()
+    if not m.docente:
+        filas = [filas[0]] + [[f[0], f[1], "", "", ""] for f in filas[1:]]
+    m.tabla(filas, [2013, 1988, 1955, 1916, 1983])
     m.nota(f"* Demanda estable en la línea vegetariana = {s(v['ing_alta'])} × "
            f"(1 − {v['caida']:.2f}) = {s(r['ing_est_veg'])} (los ingresos se reducen "
            f"{v['caida']*100:.0f}% respecto del escenario de alta demanda).")
-    m.doc.imagen(FIG / "caso2_arbol.png", 5303520, 3337173)
+    m.imagen("caso2_arbol.png", 5303520, 3337173)
     m.texto("Con los pagos ya calculados se aplica el criterio del valor esperado en cada nodo de "
             "azar:")
     pt, pv = p["trad_alta"], p["veg_alta"]
@@ -429,6 +528,33 @@ def escribir_caso2(m):
                 f"{s(p['trad_est'])}). La línea vegetariana solo sería preferible si la "
                 f"probabilidad de alta demanda superara aproximadamente {r['p_eq']:.2f}, muy por "
                 f"encima del {r['p']:.2f} estimado.")
+    pc = r["pct"]
+    m.texto("Detalle de cómo se calculan los porcentajes (siempre hay que decir cuál es la "
+            "base):")
+    m.linea(f"Probabilidades: {r['p']:.2f} = {r['p']*100:.0f}% y {q:.2f} = {q*100:.0f}% "
+            "(se multiplica por 100).")
+    m.linea(f"Reducción del {v['caida']*100:.0f}% de los ingresos: {v['caida']:.2f} × "
+            f"{v['ing_alta']:,} = {pc['caida_monto']:,.0f}; {v['ing_alta']:,} − "
+            f"{pc['caida_monto']:,.0f} = {r['ing_est_veg']:,.0f} (equivale a {v['ing_alta']:,} × "
+            f"{1 - v['caida']:.2f}).")
+    m.linea(f"Diferencia de VE con base en la línea vegetariana: ({r['ve_trad']:,.0f} − "
+            f"{r['ve_veg']:,.0f}) ÷ {r['ve_veg']:,.0f} × 100 = {r['dif']:,.0f} ÷ "
+            f"{r['ve_veg']:,.0f} × 100 = {pct(pc['dif_sobre_veg'])} (la carta criolla rinde "
+            f"{pct(pc['dif_sobre_veg'])} más).")
+    m.linea(f"La misma diferencia con base en la carta criolla: {r['dif']:,.0f} ÷ "
+            f"{r['ve_trad']:,.0f} × 100 = {pct(pc['dif_sobre_trad'])} (la línea vegetariana "
+            f"rinde {pct(pc['dif_sobre_trad'])} menos). Son dos porcentajes distintos porque "
+            "cambia la base.")
+    m.linea(f"Escenario favorable: ({pv:,} − {pt:,}) ÷ {pt:,} × 100 = {pv - pt:,} ÷ {pt:,} × 100 "
+            f"= {pct(pc['fav'], signo=True)}")
+    m.linea(f"Escenario desfavorable: ({p['veg_est']:,.0f} − {p['trad_est']:,}) ÷ "
+            f"{p['trad_est']:,} × 100 = {num(p['veg_est'] - p['trad_est'])} ÷ "
+            f"{p['trad_est']:,} × 100 = {pct(pc['des'])}")
+    m.linea(f"Probabilidad de equilibrio p: p({pt:,}) + (1 − p)({p['trad_est']:,}) = "
+            f"p({pv:,}) + (1 − p)({p['veg_est']:,.0f})  →  {p['trad_est']:,} + "
+            f"{pt - p['trad_est']:,}p = {p['veg_est']:,.0f} + {pv - p['veg_est']:,.0f}p  →  "
+            f"{p['trad_est'] - p['veg_est']:,.0f} = {(pv - p['veg_est']) - (pt - p['trad_est']):,.0f}"
+            f"p  →  p = {r['p_eq']:.4f} = {pc['p_eq']:.1f}%.")
     m.por_que(f"No basta con decir “se elige la de mayor valor esperado”: hay que mostrar cuánto "
               f"mayor es ({s(r['dif'])}) para que la recomendación sea cuantitativa, y conviene "
               "revisar también ambos escenarios para ver por qué el promedio favorece a una "
@@ -462,12 +588,13 @@ def escribir_caso3(m):
     m.enunciado("Si decide cancelar el servicio, luego de cubrir penalidades contractuales y "
                 f"liquidar los equipos, tendría una pérdida neta de {s(-c['cancelar'])}.")
 
-    m.pregunta("Construya el árbol de decisión con todos sus elementos.", "REPRESENTACIÓN")
+    m.pregunta("Construya el árbol de decisión con todos sus elementos.", "REPRESENTACIÓN",
+               espacio=16)
     if m.docente:
         m.respuesta("El árbol tiene dos niveles de decisión porque, a diferencia del Caso 2, aquí "
                     "una de las ramas de azar desemboca en una segunda decisión (con recurso) en "
                     "lugar de terminar directamente en un pago:")
-    m.doc.imagen(FIG / "caso3_arbol.png", 5852160, 2926080)
+    m.imagen("caso3_arbol.png", 5852160, 2926080)
     m.por_que("El nodo cuadrado 3 (segunda decisión) se dibuja porque la propia narración dice "
               "“deberá decidir entre lanzar una campaña de descuentos o cancelar”: eso es, por "
               "definición, otro punto de decisión del dueño del negocio, no un evento del azar, y "
@@ -477,7 +604,7 @@ def escribir_caso3(m):
               "refleja la información disponible en cada momento.")
 
     m.pregunta("Desarrolle el criterio del valor esperado realizando los cálculos necesarios y "
-               "tome la decisión que corresponda en cada nodo.", "CÁLCULO")
+               "tome la decisión que corresponda en cada nodo.", "CÁLCULO", espacio=12)
     m.respuesta("El árbol se resuelve “de atrás hacia adelante” (roll-back), empezando por el "
                 "nodo más a la derecha:")
     fav, des = c["p_camp_fav"], 1 - c["p_camp_fav"]
@@ -539,6 +666,25 @@ def escribir_caso3(m):
                 f"{(1-r['prob_menor'])*100:.0f}% de probabilidad se obtienen "
                 f"{s(e2h[1][1])} o más. Por eso se recomienda lanzar, aunque un dueño muy "
                 "adverso al riesgo podría preferir la utilidad segura.")
+    pc = r["pct"]
+    m.texto("Detalle de cómo se calculan los porcentajes (siempre hay que decir cuál es la "
+            "base):")
+    m.linea(f"Ventaja de lanzar sobre continuar (base = utilidad segura): ({r['e2']:,.0f} − "
+            f"{r['e1']:,}) ÷ {r['e1']:,} × 100 = {r['dif']:,.0f} ÷ {r['e1']:,} × 100 = "
+            f"{pct(pc['e2_vs_e1'])}")
+    m.linea(f"Lanzar y cancelar frente a continuar: ({r['e3']:,.0f} − {r['e1']:,}) ÷ "
+            f"{r['e1']:,} × 100 = {num(r['e3'] - r['e1'])} ÷ {r['e1']:,} × 100 = "
+            f"{pct(pc['e3_vs_e1'])}")
+    m.linea(f"Aporte del recurso: {r['e2']:,.0f} − {r['e3']:,.0f} = {pc['aporte_recurso']:,.0f}, "
+            f"que sobre la estrategia (3) es {pc['aporte_recurso']:,.0f} ÷ {r['e3']:,.0f} × 100 "
+            f"= {pct(pc['aporte_rel'])}")
+    ph = pc["p_hojas"]
+    m.linea(f"Probabilidad de cada resultado de la estrategia (2) = producto de las "
+            f"probabilidades de su rama: alta aceptación {c['p_alta']:.2f} = {ph[0]}%; baja "
+            f"aceptación y respuesta favorable {q:.2f} × {c['p_camp_fav']:.2f} = "
+            f"{q * c['p_camp_fav']:.2f} = {ph[1]}%; baja aceptación y respuesta desfavorable "
+            f"{q:.2f} × {1 - c['p_camp_fav']:.2f} = {q * (1 - c['p_camp_fav']):.2f} = {ph[2]}%. "
+            f"Suma: {sum(ph)}%.")
     m.por_que("La respuesta no puede limitarse a “se lanza porque el valor esperado es mayor”: hay "
               "que comparar los valores finales de las tres estrategias completas y mostrar qué "
               "aporta el recurso (sin él, la conclusión se invierte). Además, el valor esperado es "
@@ -554,15 +700,16 @@ def main():
     for docente, nombre, plantilla in (
             (True, "Modelo_de_Sustentacion_Semana7_DOCENTE.docx",
              "Modelo_de_Sustentacion_2_DOCENTE.docx"),
-            (False, "Modelo_de_Sustentacion_Semana7_ESTUDIANTE.docx",
+            (False, "Hoja_de_Sustentacion_Semana7_ESTUDIANTE.docx",
              "Modelo_de_Sustentacion_2_ESTUDIANTE.docx")):
         m = Modelo(docente, AQUI / "plantillas" / plantilla)
         m.titulo()
         escribir_caso1(m)
         escribir_caso2(m)
         escribir_caso3(m)
+        m.fin()
         m.doc.d.core_properties.title = "Sustentación Semana 7 – " + (
-            "Solucionario docente" if docente else "Modelo estudiante")
+            "Solucionario docente" if docente else "Hoja del estudiante")
         m.doc.guardar(SALIDA / nombre)
         print("generado:", SALIDA / nombre)
 

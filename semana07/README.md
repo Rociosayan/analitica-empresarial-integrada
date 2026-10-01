@@ -2,12 +2,12 @@
 
 Tres casos nuevos con el mismo formato del modelo anterior (Caso 1: colas M/M/s ·
 Caso 2: árbol de decisión de un nivel · Caso 3: árbol con recurso de dos niveles),
-en versión **DOCENTE** (con rúbrica, «Respuesta» y «¿Por qué se resuelve así?») y **ESTUDIANTE**.
+en versión **DOCENTE** (solucionario con rúbrica, «Respuesta», «¿Por qué se resuelve así?» y el detalle paso a paso de cada porcentaje) y **ESTUDIANTE** (hoja en blanco: enunciados, preguntas y espacio para responder, sin soluciones).
 
 | Archivo | Contenido |
 |---|---|
 | `modelos/Modelo_de_Sustentacion_Semana7_DOCENTE.docx` | Solucionario docente |
-| `modelos/Modelo_de_Sustentacion_Semana7_ESTUDIANTE.docx` | Modelo de respuesta del estudiante |
+| `modelos/Hoja_de_Sustentacion_Semana7_ESTUDIANTE.docx` | Hoja del estudiante, sin soluciones |
 | `calculos.py` | Todos los números de los tres casos, cada uno verificado con un segundo método |
 | `figuras.py` | Gráfico de costos y árboles de decisión |
 | `generar_modelos.py` | Genera los dos `.docx` a partir de `plantillas/` y `calculos.py` |
