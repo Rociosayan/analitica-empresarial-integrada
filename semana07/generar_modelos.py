@@ -161,7 +161,7 @@ class Modelo:
         self._cerrar_pregunta()
 
     # encabezados
-    def titulo(self):
+    def titulo(self, subtitulo="Semana 7 · Teoría de colas y Teoría de decisión"):
         if self.docente:
             self.doc.p([("Sustentación", dict(b=True, color=RED)),
                         (" – SOLUCIONARIO DOCENTE", dict(b=True, color=RED))],
@@ -170,8 +170,7 @@ class Modelo:
             self.doc.p([("Sustentación", dict(b=True, color=DRED))], after=40, jc="center")
             self.doc.p([("Nombre: ______________________________   Fecha: ____________",
                          dict(color=GREY))], after=80, jc="center")
-        self.doc.p([("Semana 7 · Teoría de colas y Teoría de decisión",
-                     dict(i=True, color=GREY))], jc="center")
+        self.doc.p([(subtitulo, dict(i=True, color=GREY))], jc="center")
 
     def caso(self, n, titulo, subtitulo):
         self._cerrar_pregunta()
