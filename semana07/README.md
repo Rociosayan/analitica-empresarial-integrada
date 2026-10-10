@@ -30,3 +30,22 @@ Correcciones respecto del modelo anterior (Sustentación 2): se eliminaron las i
 (VE con pago equivocado, diferencia «S/ 11,000» en vez de S/ 6,500, árbol del Caso 2 con
 valores que no coincidían con la tabla) y el enunciado del Caso 3 aclara que el costo
 inicial no está incluido en las ganancias, para que no haya doble lectura.
+
+## Serie B (3 casos nuevos)
+
+| Archivo | Contenido |
+|---|---|
+| `modelos/Hoja_de_Sustentacion_Semana7_SerieB_ESTUDIANTE.docx` | Hoja en blanco para el estudiante |
+| `modelos/Modelo_de_Sustentacion_Semana7_SerieB_DOCENTE.docx` | Solucionario paso a paso |
+| `calculos_b.py` · `figuras_b.py` · `generar_b.py` | Cálculos verificados, figuras y generador |
+
+| Caso | Decisión | Cifras clave |
+|---|---|---|
+| 1 · Caja Rural Sol del Norte (M/M/s) | Contratar el 4.º cajero | Wq 7.02 → 1.07 min (meta ≤ 3); costo S/ 23,203 → S/ 15,007 (ahorro S/ 8,196) |
+| 2 · Finca La Selva Alta (VE) | Certificar café orgánico | VE S/ 65,000 vs S/ 57,500; equilibrio P(precio alto) = 0.40 |
+| 3 · Rutas del Sur (árbol con recurso) | Continuar con carga seca | VE neto de lanzar S/ 158,300 vs S/ 200,000 seguro; equilibrio P(alta) ≈ 0.73 |
+
+```bash
+python calculos_b.py   # verificaciones cruzadas
+python generar_b.py    # regenera figuras y los dos .docx de la Serie B
+```

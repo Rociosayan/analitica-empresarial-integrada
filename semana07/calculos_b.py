@@ -146,10 +146,15 @@ def caso3():
     )
     assert sum(pc["p_hojas"]) == 100
     prob_menor = sum(w for w, x in hojas_reor if x < c["seguro"])
+    # probabilidad de alta aceptación que haría indiferente lanzar y continuar
+    p_eq = (c["seguro"] + ci - nodo3) / (c["g_alta"] - nodo3)
+    assert isclose(p_eq * c["g_alta"] + (1 - p_eq) * nodo3 - ci, c["seguro"])
+    pc["p_eq"] = round(p_eq * 100, 1)
+    pc["p_perdida"] = round(sum(w for w, x in hojas_reor if x < 0) * 100)
     return dict(ve_reor_bruto=ve_reor_bruto, ve_reor=ve_reor, nodo3=nodo3,
                 ve_bruto=ve_bruto, ve_neto=ve_neto, mejor=mejor, e1=c["seguro"],
                 e2=e2, e3=e3, dif=c["seguro"] - ve_neto, hojas_reor=hojas_reor,
-                prob_menor=prob_menor, pct=pc)
+                prob_menor=prob_menor, p_eq=p_eq, pct=pc)
 
 
 if __name__ == "__main__":
